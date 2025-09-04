@@ -36,7 +36,7 @@ Transform your PDF syllabus into an organized, interactive calendar with AI-powe
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/syllabus-calendar.git
+   git clone https://github.com/Richard-codon/Syll2Cal.git
    cd syllabus-calendar
    ```
 
