@@ -6,19 +6,23 @@ interface CalendarViewProps {
   events: CalendarEvent[];
 }
 
+//component to display calendar view and list view of events
 export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
+//sort events by date for consistent display
   const sortedEvents = [...events].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
+//generate statistics for event types
   const eventsByType = events.reduce((acc, event) => {
     acc[event.type] = (acc[event.type] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
+  //function to export event to google calendar
   const exportToGoogleCalendar = (event: CalendarEvent) => {
     const startDate = new Date(event.date);
     const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour duration
@@ -32,12 +36,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
     window.open(googleUrl, '_blank');
   };
 
+  //Export all events to google calendar with slight delay to avoid popup blockers
   const exportAllToGoogleCalendar = () => {
     events.forEach((event, index) => {
       setTimeout(() => exportToGoogleCalendar(event), index * 100);
     });
   };
 
+  //main render function
   return (
     <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
       {/* Header */}

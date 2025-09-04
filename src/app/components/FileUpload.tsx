@@ -3,24 +3,28 @@
 import { useState, useRef } from 'react';
 import type { UploadResponse } from '../types';
 
+//component props interface for the file upload component
 interface FileUploadProps {
   onUploadSuccess: (data: UploadResponse) => void;
   onUploadError: (error: string) => void;
 }
 
+
 export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess, onUploadError }) => {
+    //component state management
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
-
+ //validate file type(file should be PDF only)
     if (file.type !== 'application/pdf') {
       onUploadError('Please select a PDF file. Only PDF syllabi are supported.');
       return;
     }
 
+    //validate file size(limit to 10MB)
     if (file.size > 10 * 1024 * 1024) { // 10MB limit
       onUploadError('File size too large. Please select a PDF smaller than 10MB.');
       return;
@@ -40,7 +44,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess, onUploa
       if (!res.ok) {
         throw new Error(`Upload failed with status: ${res.status}`);
       }
-
+//parse response and handle success or failure
       const data: UploadResponse = await res.json();
 
       if (data.success) {
@@ -63,6 +67,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess, onUploa
     }
   };
 
+  //handle file drop events
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();

@@ -83,7 +83,7 @@ function parsePdfToEvents(text: string): CalendarEvent[] {
         const dateStr = match[0];
         let cleanedLine = line.replace(dateStr, '').replace(/[-–—]/g, '').trim();
         
-        // Remove common prefixes/suffixes that aren't part of the event
+        // Remove common prefixes/suffixes that are not part of the event
         cleanedLine = cleanedLine
           .replace(/^(Week\s+\d+:?\s*)/i, '')
           .replace(/^(Class\s+\d+:?\s*)/i, '')
@@ -93,7 +93,7 @@ function parsePdfToEvents(text: string): CalendarEvent[] {
           .trim();
 
         if (cleanedLine.length < 3) {
-          // If title is too short, try to get context from surrounding lines
+          // If title is too short,  get context from surrounding lines
           const contextLines = lines.slice(Math.max(0, index - 1), Math.min(lines.length, index + 2));
           cleanedLine = contextLines
             .filter(l => l !== line && l.length > 3)
@@ -137,7 +137,7 @@ function parseDate(dateStr: string): Date | null {
     // Convert numeric dates to proper format
     if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(cleanDateStr)) {
       const parts = cleanDateStr.split(/[\/\-]/);
-      const month = parseInt(parts[0]) - 1; // JS months are 0-indexed
+      const month = parseInt(parts[0]) - 1; 
       const day = parseInt(parts[1]);
       let year = parseInt(parts[2]);
       
@@ -157,9 +157,11 @@ function parseDate(dateStr: string): Date | null {
   }
 }
 
+//first step in classification is to look for keywords
 function classifyEvent(text: string): CalendarEvent['type'] {
+    //convert to lower case for easier matching
   const lower = text.toLowerCase();
-  
+  //keywords for each type and return the main type if matched, simple and clean approach
   if (lower.includes('exam') || lower.includes('test') || lower.includes('quiz') || lower.includes('final')) {
     return 'exam';
   }

@@ -1,7 +1,7 @@
 export interface CalendarEvent {
     id: number;
     title: string;
-    date: string; // ISO string
+    date: string; 
     type: 'assignment' | 'exam' | 'reading' | 'deadline' | 'holiday' | 'class' | 'other';
     description?: string;
     rawText: string;
@@ -26,13 +26,15 @@ export interface CalendarEvent {
   }
   
   export const EVENT_TYPE_CONFIGS: Record<CalendarEvent['type'], EventTypeConfig> = {
+    //High-priority academic events are marked in red
     exam: {
       color: 'text-red-800',
       bgColor: 'bg-red-50',
       borderColor: 'border-red-300',
-      icon: '📝',
+      icon: '📝', //I included these icons to make the app more lively and catchy
       label: 'Exam'
     },
+    //Regular assignments are marked in blue
     assignment: {
       color: 'text-blue-800',
       bgColor: 'bg-blue-50',
@@ -40,6 +42,7 @@ export interface CalendarEvent {
       icon: '📋',
       label: 'Assignment'
     },
+    //Reading and assignments are marked in green
     reading: {
       color: 'text-green-800',
       bgColor: 'bg-green-50',
@@ -47,6 +50,7 @@ export interface CalendarEvent {
       icon: '📚',
       label: 'Reading'
     },
+    //Deadlines are marked in yellow
     deadline: {
       color: 'text-yellow-800',
       bgColor: 'bg-yellow-50',
@@ -54,6 +58,7 @@ export interface CalendarEvent {
       icon: '⏰',
       label: 'Deadline'
     },
+    //Holidays are marked in purple
     holiday: {
       color: 'text-purple-800',
       bgColor: 'bg-purple-50',
@@ -61,6 +66,7 @@ export interface CalendarEvent {
       icon: '🎉',
       label: 'Holiday'
     },
+    //regular classes sessions are marked in indigo
     class: {
       color: 'text-indigo-800',
       bgColor: 'bg-indigo-50',
@@ -68,6 +74,7 @@ export interface CalendarEvent {
       icon: '🎓',
       label: 'Class'
     },
+    //uncategorized events are marked in gray
     other: {
       color: 'text-gray-800',
       bgColor: 'bg-gray-50',
