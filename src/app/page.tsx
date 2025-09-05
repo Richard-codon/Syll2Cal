@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { FileUpload } from './components/FileUpload';
 import { CalendarView } from './components/CalendarView';
+import { WelcomeSection } from './components/WelcomeSection';
 import type { CalendarEvent } from './types';
 
 export default function Page() {
@@ -10,7 +11,7 @@ export default function Page() {
   const [error, setError] = useState('');
   const [showCalendar, setShowCalendar] = useState(false);
 
-  // Remove frontend parser; just use backend events
+  
   const handleUploadSuccess = (backendResponse: { success: boolean; events: CalendarEvent[] }) => {
     if (backendResponse.success) {
       setEvents(backendResponse.events);
@@ -40,7 +41,10 @@ export default function Page() {
       {error && <p className="text-red-600 text-center">{error}</p>}
 
       {!showCalendar ? (
-        <FileUpload onUploadSuccess={handleUploadSuccess} onUploadError={handleUploadError} />
+        <div>
+          <WelcomeSection />
+          <FileUpload onUploadSuccess={handleUploadSuccess} onUploadError={handleUploadError} />
+        </div>
       ) : (
         <>
           <button onClick={reset} className="mb-4 px-4 py-2 bg-blue-600 text-white rounded">
@@ -50,5 +54,6 @@ export default function Page() {
         </>
       )}
     </div>
+    
   );
 }

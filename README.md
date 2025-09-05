@@ -4,7 +4,7 @@ Transform your PDF syllabus into an organized, interactive calendar with AI-powe
 
 ## Features
 
-- **AI-Powered Extraction**: Automatically identifies dates, assignments, exams, and events from PDF syllabi
+- **Automated Extraction**: Automatically identifies dates, assignments, exams, and events from PDF syllabi
 - **Dual View Modes**: Switch between list view and calendar grid view
 - **Smart Categorization**: Automatically categorizes events (exams, assignments, readings, deadlines, etc.)
 - **Google Calendar Integration**: Export individual events or entire calendar with one click
@@ -100,22 +100,18 @@ syllabus-calendar/
 
 ### Smart Event Categorization
 
-- ** Exams**: Tests, quizzes, finals
-- ** Assignments**: Homework, papers, projects
-- ** Readings**: Chapters, articles, cases
-- ** Deadlines**: Drop dates, registration deadlines
-- ** Holidays**: Breaks, no-class days
-- ** Classes**: Regular class sessions
+- **Exams**: Tests, quizzes, finals
+- **Assignments**: Homework, papers, projects
+- **Readings**: Chapters, articles, cases
+- **Deadlines**: Drop dates, registration deadlines
+- **Holidays**: Breaks, no-class days
+- **Classes**: Regular class sessions
 
 ### Google Calendar Integration
 
 - Individual event export with proper formatting
 - Bulk export functionality
 - Pre-filled event details and descriptions
-
-## Deployment
-
-### Deploy to Vercel
 
 ## Performance
 
@@ -134,11 +130,22 @@ This project was built as part of a LawBandit internship application. Feel free 
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## Deployment
+
+### Deploy to Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Connect your repository to [Vercel](https://vercel.com)
+3. Deploy automatically with zero configuration
+4. Get your live URL instantly
+
+For other deployment options, check the project documentation.
+
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
-##Contact
+## Contact
 
 Built by Richard Asante for LawBandit Internship Application
 
