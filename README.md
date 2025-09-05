@@ -12,11 +12,11 @@ Transform your PDF syllabus into an organized, interactive calendar with AI-powe
 - **Fast Processing**: Quick PDF parsing and event extraction
 - **Professional Styling**: Clean, recruiter-friendly interface
 
-## 🚀 Live Demo
+## Live Demo
 
 **[View Live App →](https://your-vercel-deployment-url.vercel.app)**
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: Next.js 13+, React, TypeScript
 - **Styling**: Tailwind CSS
@@ -37,7 +37,7 @@ Transform your PDF syllabus into an organized, interactive calendar with AI-powe
 
    ```bash
    git clone https://github.com/Richard-codon/Syll2Cal.git
-   cd syllabus-calendar
+   cd syllabus-calendar-nextjs
    ```
 
 2. **Install dependencies**
