@@ -14,7 +14,7 @@ Transform your PDF syllabus into an organized, interactive calendar with AI-powe
 
 ## Live Demo
 
-**[View Live App →](https://your-vercel-deployment-url.vercel.app)**
+**[View Live App →](https://syll2-cal.vercel.app/)**
 
 ## Tech Stack
 
