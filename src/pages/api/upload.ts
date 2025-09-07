@@ -253,7 +253,7 @@ function classifyEvent(text: string): CalendarEvent['type'] {
   
   // Exam keywords (including variations)
   if (lower.includes('exam') || lower.includes('test') || lower.includes('quiz') || 
-      lower.includes('final') || lower.includes('midterm') || lower.includes('practical')) {
+      lower.includes('final') || lower.includes('midterm') || lower.includes('practical') || lower.includes('course end date')) {
     return 'exam';
   }
   
