@@ -3,7 +3,7 @@ import pdf from 'pdf-parse';
 
 export const config = {
   api: {
-    bodyParser: false, // Required to handle raw file uploads
+    bodyParser: false,
   },
 };
 
@@ -36,6 +36,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const data = await pdf(buffer);
+    
+    // Debug: Log the extracted text (will comment it out  after testing)
+    //console.log('Extracted PDF text:', data.text.substring(0, 1000));
+    
     const events = parsePdfToEvents(data.text);
 
     if (events.length === 0) {
@@ -57,87 +61,106 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 function parsePdfToEvents(text: string): CalendarEvent[] {
+  // Split into lines and clean
   const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
   
-  // Comprehensive date patterns
+  // More comprehensive and specific date patterns
   const datePatterns = [
-    // Full month names: "January 15, 2024" or "January 15 2024"
-    /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b/gi,
-    // Short month names: "Jan 15, 2024" or "Jan. 15, 2024"
-    /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+\d{1,2},?\s+\d{4}\b/gi,
-    // Numeric dates: "1/15/24", "01/15/2024", "1-15-24"
-    /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/g,
-    // Date ranges: "Jan 15-20" or "January 15-20, 2024"
-    /\b(?:(?:January|February|March|April|May|June|July|August|September|October|November|December)|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?)\s+\d{1,2}\s*[-–—]\s*\d{1,2},?\s+\d{4}\b/gi
+    // Full month names with year: "January 15, 2024", "January 15 2024"
+    /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,?\s*\d{4})\b/gi,
+    
+    // Short month names with year: "Jan 15, 2024", "Jan. 15, 2024", "Sep 30"
+    /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+\d{1,2}(?:,?\s*\d{4})?\b/gi,
+    
+    // Numeric formats: "9/2", "10/28", "12/16", "1/15/24", "01/15/2024"
+    /\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/g,
+    
+    // Numeric with dashes: "9-2", "10-28", "1-15-24"
+    /\b\d{1,2}-\d{1,2}(?:-\d{2,4})?\b/g,
+    
+    // Date ranges: "Jan 15-20", "January 15-20, 2024"
+    /\b(?:(?:January|February|March|April|May|June|July|August|September|October|November|December)|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?)\s+\d{1,2}\s*[-–—]\s*\d{1,2}(?:,?\s*\d{4})?\b/gi
   ];
 
   const events: CalendarEvent[] = [];
   let eventId = 1;
-
+  
+  // Add a default year for dates without years
+  const currentYear = new Date().getFullYear();
+  
+  // Process each line
   lines.forEach((line, index) => {
-    // Check each date pattern
+    // Try each pattern
     for (const pattern of datePatterns) {
       const matches = Array.from(line.matchAll(pattern));
       
       matches.forEach(match => {
         const dateStr = match[0];
-        let cleanedLine = line.replace(dateStr, '').replace(/[-–—]/g, '').trim();
         
-        // Remove common prefixes/suffixes that are not part of the event
-        cleanedLine = cleanedLine
-          .replace(/^(Week\s+\d+:?\s*)/i, '')
-          .replace(/^(Class\s+\d+:?\s*)/i, '')
-          .replace(/^(Session\s+\d+:?\s*)/i, '')
-          .replace(/^\d+\.\s*/, '') // Remove numbering like "1. "
-          .replace(/^\w+day,?\s*/i, '') // Remove day names
-          .trim();
-
-        if (cleanedLine.length < 3) {
-          // If title is too short,  get context from surrounding lines
-          const contextLines = lines.slice(Math.max(0, index - 1), Math.min(lines.length, index + 2));
-          cleanedLine = contextLines
-            .filter(l => l !== line && l.length > 3)
-            .join(' ')
-            .slice(0, 100) || 'Course Event';
+        // Parse the date and add default year if needed
+        const parsedDate = parseDate(dateStr, currentYear);
+        if (!parsedDate || isNaN(parsedDate.getTime())) {
+          return; // Skip invalid dates
         }
-
-        const parsedDate = parseDate(dateStr);
-        if (parsedDate && !isNaN(parsedDate.getTime())) {
-          const eventType = classifyEvent(line);
-          
-          events.push({
-            id: eventId++,
-            title: cleanedLine || 'Course Event',
-            date: parsedDate.toISOString(),
-            type: eventType,
-            description: line.length > cleanedLine.length ? line : undefined,
-            rawText: line
-          });
+        
+        // Extract event title
+        const title = extractEventTitle(line, dateStr, lines, index);
+        
+        // Skip if title is too generic or empty
+        if (!title || title.length < 3 || isGenericTitle(title)) {
+          return;
         }
+        
+        // Classify the event
+        const eventType = classifyEvent(line);
+        
+        events.push({
+          id: eventId++,
+          title: title,
+          date: parsedDate.toISOString(),
+          type: eventType,
+          description: line.length > title.length ? line : undefined,
+          rawText: line
+        });
       });
     }
   });
 
-  // Remove duplicates and sort by date
-  const uniqueEvents = events.filter((event, index, self) => 
-    index === self.findIndex(e => 
-      e.date === event.date && 
-      e.title.toLowerCase() === event.title.toLowerCase()
-    )
-  );
-
+  // Remove duplicates more intelligently
+  const uniqueEvents = removeDuplicates(events);
+  
+  // Sort chronologically
   return uniqueEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }
 
-function parseDate(dateStr: string): Date | null {
+function parseDate(dateStr: string, defaultYear: number): Date | null {
   try {
-    // Handle various date formats
-    const cleanDateStr = dateStr.trim();
+    let cleanDateStr = dateStr.trim();
     
-    // Convert numeric dates to proper format
+    // Handle numeric formats without year: "9/2" -> "9/2/2025"
+    if (/^\d{1,2}\/\d{1,2}$/.test(cleanDateStr)) {
+      cleanDateStr += `/${defaultYear}`;
+    }
+    
+    // Handle dash formats: "9-2" -> "9/2"
+    if (/^\d{1,2}-\d{1,2}$/.test(cleanDateStr)) {
+      cleanDateStr = cleanDateStr.replace('-', '/') + `/${defaultYear}`;
+    }
+    
+    // Handle month names without year: "Sep 30" -> "Sep 30, 2025"
+    if (/^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+\d{1,2}$/.test(cleanDateStr)) {
+      cleanDateStr += `, ${defaultYear}`;
+    }
+    
+    // Handle full month names without year
+    if (/^(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}$/.test(cleanDateStr)) {
+      cleanDateStr += `, ${defaultYear}`;
+    }
+    
+    // Handle numeric dates MM/DD/YY or MM-DD-YY
     if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(cleanDateStr)) {
       const parts = cleanDateStr.split(/[\/\-]/);
-      const month = parseInt(parts[0]) - 1; 
+      const month = parseInt(parts[0]) - 1; // JS months are 0-indexed
       const day = parseInt(parts[1]);
       let year = parseInt(parts[2]);
       
@@ -149,40 +172,121 @@ function parseDate(dateStr: string): Date | null {
       return new Date(year, month, day);
     }
     
-    // For other formats, let Date constructor handle it
+    // Let JavaScript handle the rest
     const parsed = new Date(cleanDateStr);
     return isNaN(parsed.getTime()) ? null : parsed;
+    
   } catch {
     return null;
   }
 }
 
-//first step in classification is to look for keywords
+function extractEventTitle(line: string, dateStr: string, lines: string[], currentIndex: number): string {
+  // Remove the date from the line
+  let title = line.replace(new RegExp(dateStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '').trim();
+  
+  // Remove common prefixes and formatting
+  title = title
+    .replace(/^(Week\s+\d+:?\s*)/i, '')
+    .replace(/^(Class\s+\d+:?\s*)/i, '')
+    .replace(/^(Session\s+\d+:?\s*)/i, '')
+    .replace(/^(Lab\s+#?\d+\s*[-–—]?\s*)/i, '')
+    .replace(/^\d+\.\s*/, '')
+    .replace(/^[-–—]+\s*/, '')
+    .replace(/\s*[-–—]+\s*$/, '')
+    .replace(/^\w+day,?\s*/i, '') // Remove day names
+    .replace(/^(due|submit|turn\s+in):?\s*/i, '') // Remove "due" prefixes
+    .trim();
+  
+  // If title is too short, get context from surrounding lines
+  if (title.length < 5) {
+    const contextLines = lines.slice(Math.max(0, currentIndex - 1), Math.min(lines.length, currentIndex + 2));
+    const contextTitle = contextLines
+      .filter(l => l !== line && l.length > 10 && !containsDate(l))
+      .join(' ')
+      .slice(0, 80);
+    
+    if (contextTitle.length > title.length) {
+      title = contextTitle.trim();
+    }
+  }
+  
+  // Final cleanup
+  return title.replace(/\s+/g, ' ').trim();
+}
+
+function containsDate(text: string): boolean {
+  const datePattern = /\b(?:\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+\d{1,2})\b/gi;
+  return datePattern.test(text);
+}
+
+function isGenericTitle(title: string): boolean {
+  const genericPatterns = [
+    /^(week|class|session|lab|lecture)\s*\d*$/i,
+    /^(due|submit|assignment)$/i,
+    /^\d+$/,
+    /^[a-z]\s*$/i
+  ];
+  
+  return genericPatterns.some(pattern => pattern.test(title.trim()));
+}
+
+function removeDuplicates(events: CalendarEvent[]): CalendarEvent[] {
+  const seen = new Set();
+  
+  return events.filter(event => {
+    // Create a key based on date and similar title
+    const dateKey = event.date.split('T')[0]; // Just the date part
+    const titleKey = event.title.toLowerCase().replace(/[^\w]/g, '').substring(0, 20);
+    const key = `${dateKey}-${titleKey}`;
+    
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
 function classifyEvent(text: string): CalendarEvent['type'] {
-    //convert to lower case for easier matching
   const lower = text.toLowerCase();
-  //keywords for each type and return the main type if matched, simple and clean approach
-  if (lower.includes('exam') || lower.includes('test') || lower.includes('quiz') || lower.includes('final')) {
+  
+  // Exam keywords (including variations)
+  if (lower.includes('exam') || lower.includes('test') || lower.includes('quiz') || 
+      lower.includes('final') || lower.includes('midterm') || lower.includes('practical')) {
     return 'exam';
   }
+  
+  // Assignment keywords
   if (lower.includes('assignment') || lower.includes('homework') || lower.includes('hw') || 
-      lower.includes('due') || lower.includes('submit') || lower.includes('paper')) {
+      lower.includes('due') || lower.includes('submit') || lower.includes('paper') || 
+      lower.includes('project') || lower.includes('lab') && lower.includes('due')) {
     return 'assignment';
   }
+  
+  // Reading keywords
   if (lower.includes('read') || lower.includes('chapter') || lower.includes('pages') || 
       lower.includes('article') || lower.includes('case')) {
     return 'reading';
   }
+  
+  // Deadline keywords
   if (lower.includes('deadline') || lower.includes('drop') || lower.includes('add') || 
-      lower.includes('registration') || lower.includes('withdraw')) {
+      lower.includes('registration') || lower.includes('withdraw') || 
+      lower.includes('last day')) {
     return 'deadline';
   }
+  
+  // Holiday keywords
   if (lower.includes('holiday') || lower.includes('no class') || lower.includes('break') || 
-      lower.includes('vacation') || lower.includes('recess')) {
+      lower.includes('vacation') || lower.includes('recess') || lower.includes('no lab') || 
+      lower.includes('no lecture')) {
     return 'holiday';
   }
+  
+  // Class keywords
   if (lower.includes('class') || lower.includes('lecture') || lower.includes('session') || 
-      lower.includes('seminar') || lower.includes('discussion')) {
+      lower.includes('seminar') || lower.includes('discussion') || lower.includes('lab')) {
     return 'class';
   }
   
