@@ -5,7 +5,7 @@ import { FileUpload } from './components/FileUpload';
 import { CalendarView } from './components/CalendarView';
 import { WelcomeSection } from './components/WelcomeSection';
 import type { CalendarEvent } from './types';
-
+import { Analytics } from "@vercel/analytics/next"
 export default function Page() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [error, setError] = useState('');
@@ -37,7 +37,7 @@ export default function Page() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-3xl font-bold text-center mb-6">Syll2Cal</h1>
-
+      <Analytics />
       {error && <p className="text-red-600 text-center">{error}</p>}
 
       {!showCalendar ? (
