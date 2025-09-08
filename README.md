@@ -113,6 +113,43 @@ syllabus-calendar/
 - Bulk export functionality
 - Pre-filled event details and descriptions
 
+## Technical Implementation Choice: Why No LLM?
+
+### Regex-Based Parsing vs. Large Language Models
+
+This project uses traditional regex pattern matching and text processing algorithms rather than Large Language Models (LLMs) for PDF content extraction. This was an intentional technical decision based on several factors:
+
+**Reliability and Accuracy**
+
+- Regex patterns provide deterministic, predictable results for date extraction
+- LLMs can suffer from "AI hallucination" - generating plausible but incorrect dates that don't exist in the source document
+- Date parsing requires precision; a hallucinated exam date could cause a student to miss their actual exam
+
+**Performance and Efficiency**
+
+- Direct text processing is faster than LLM API calls
+- No external dependencies or API rate limits
+- Immediate response time for users
+
+**Cost and Scalability**
+
+- No ongoing API costs for LLM services (This will save LawBandit some costs)
+- Scales without per-request charges (Which I know we would keep Scaling up, without having to pay more charges)
+- Suitable for high-volume usage
+
+**Problem Appropriateness**
+
+- Date extraction is a pattern recognition task well-suited to regex
+- The challenge isn't understanding context, but identifying and parsing structured date formats
+- LLMs excel at language understanding, but this problem requires precise pattern matching
+
+**Data Privacy**
+
+- All processing happens locally without sending sensitive academic documents to third-party AI services (More concerned about security)
+- No risk of student data being processed by external LLM providers (Bringing my associates degree in cybersecurity into action)
+
+The effectiveness of this approach is demonstrated by the varying extraction results across different syllabi - the tool accurately reflects the amount of structured date information present in each document, rather than inferring or generating dates that may not exist.
+
 ## Performance
 
 - **Fast PDF Processing**: Optimized parsing for quick extraction
