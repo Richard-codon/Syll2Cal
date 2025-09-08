@@ -172,7 +172,7 @@ function parseDate(dateStr: string, defaultYear: number): Date | null {
       return new Date(year, month, day);
     }
     
-    // Let JavaScript handle the rest
+    
     const parsed = new Date(cleanDateStr);
     return isNaN(parsed.getTime()) ? null : parsed;
     
