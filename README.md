@@ -68,27 +68,32 @@ Transform your PDF syllabus into an organized, interactive calendar with AI-powe
 
 ## Project Structure
 
-```
-syllabus-calendar/
-├── public/                 # Static assets
+syllabus-calendar-nextjs/
+├── .next/  
+├── node_modules/  
+├── public/
+│ ├── favicon.ico
+│ └── ...other assets  
 ├── src/
-│   ├── components/        # React components
-│   │   ├── CalendarView.tsx
-│   │   └── FileUpload.tsx
-│   ├── pages/            # Next.js pages
-│   │   ├── index.tsx     # Main page
-│   │   ├── _app.tsx      # App wrapper
-│   │   └── api/
-│   │       └── upload.ts # PDF processing API
-│   ├── types/            # TypeScript definitions
-│   │   └── index.ts
-│   └── styles/           # Global styles
-│       └── globals.css
+│ ├── app/
+│ │ ├── components/
+│ │ │ ├── CalendarView.tsx
+│ │ │ ├── FileUpload.tsx
+│ │ │ └── WelcomeSection.tsx
+│ │ ├── favicon.ico
+│ │ ├── globals.css
+│ │ ├── layout.tsx
+│ │ ├── page.tsx  
+│ │ └── types.ts
+│ └── pages/
+│ └── api/
+│ └── upload.ts
+├── .gitignore
 ├── package.json
+├── package-lock.json
+├── next.config.js
 ├── tsconfig.json
-├── tailwind.config.js
-└── next.config.js
-```
+└── README.md
 
 ## Key Features Explained
 
