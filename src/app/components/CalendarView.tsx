@@ -23,7 +23,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
   }, {} as Record<string, number>);
 
   //function to export event to google calendar
-  const exportToGoogleCalendar = (event: CalendarEvent) => {
+  /* const exportToGoogleCalendar = (event: CalendarEvent) => {
     const startDate = new Date(event.date);
     const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour duration
     
@@ -42,6 +42,42 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
       setTimeout(() => exportToGoogleCalendar(event), index * 100);
     });
   };
+ */
+  const exportEventsAsICS = (events: CalendarEvent[]) => {
+    const pad = (num: number) => String(num).padStart(2, '0');
+  
+    const formatDate = (date: Date) => {
+      return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}00Z`;
+    };
+  
+    const icsEvents = events.map(event => {
+      const start = formatDate(new Date(event.date));
+      const end = formatDate(new Date(new Date(event.date).getTime() + 60 * 60 * 1000)); // 1 hour duration
+  
+      return `BEGIN:VEVENT
+  SUMMARY:${event.title}
+  DESCRIPTION:${event.description || event.rawText}
+  DTSTART:${start}
+  DTEND:${end}
+  END:VEVENT`;
+    }).join('\n');
+  
+    const icsContent = `BEGIN:VCALENDAR
+  VERSION:2.0
+  PRODID:-//YourApp//EN
+  ${icsEvents}
+  END:VCALENDAR`;
+  
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'events.ics';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
 
   //main render function
   return (
@@ -107,7 +143,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
             Export your events to Google Calendar for easy access
           </p>
           <button
-            onClick={exportAllToGoogleCalendar}
+            onClick={() => exportEventsAsICS(events)}
             className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-md hover:shadow-lg"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +157,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
       {/* Content */}
       <div className="p-8">
         {viewMode === 'list' ? (
-          <ListView events={sortedEvents} onExportEvent={exportToGoogleCalendar} />
+          <ListView events={sortedEvents} onExportEvent={(event) => exportEventsAsICS([event])} />
         ) : (
           <CalendarGrid events={sortedEvents} selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} />
         )}
