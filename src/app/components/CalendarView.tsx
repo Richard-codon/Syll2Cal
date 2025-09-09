@@ -23,7 +23,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
   }, {} as Record<string, number>);
 
   //function to export event to google calendar
-  /* const exportToGoogleCalendar = (event: CalendarEvent) => {
+  const exportToGoogleCalendar = (event: CalendarEvent) => {
     const startDate = new Date(event.date);
     const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour duration
     
@@ -42,8 +42,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
       setTimeout(() => exportToGoogleCalendar(event), index * 100);
     });
   };
- */
-  const exportEventsAsICS = (events: CalendarEvent[]) => {
+
+  /* const exportEventsAsICS = (events: CalendarEvent[]) => {
     const pad = (num: number) => String(num).padStart(2, '0');
   
     const formatDate = (date: Date) => {
@@ -78,7 +78,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
     document.body.removeChild(link);
   };
   
-
+ */
   //main render function
   return (
     <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -143,7 +143,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
             Export your events to Google Calendar for easy access
           </p>
           <button
-            onClick={() => exportEventsAsICS(events)}
+            onClick={exportAllToGoogleCalendar}
             className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-md hover:shadow-lg"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,7 +157,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
       {/* Content */}
       <div className="p-8">
         {viewMode === 'list' ? (
-          <ListView events={sortedEvents} onExportEvent={(event) => exportEventsAsICS([event])} />
+          <ListView events={sortedEvents} onExportEvent={exportToGoogleCalendar} />
         ) : (
           <CalendarGrid events={sortedEvents} selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} />
         )}
