@@ -10,7 +10,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
-  const [exportFileName, setExportFileName] = useState('events.ics');
+  const [exportFileName, setExportFileName] = useState('my-syllabus-calendar.ics');
 
   // sort events by date
   const sortedEvents = [...events].sort(
@@ -24,30 +24,36 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
   }, {} as Record<string, number>);
 
   // function to export events as .ics
-  const exportEventsAsICS = (eventsToExport: CalendarEvent[], fileName = 'events.ics') => {
-    const pad = (num: number) => String(num).padStart(2, '0');
+  const exportEventsAsICS = (eventsToExport: CalendarEvent[], fileName = 'my-syllabus-calendar.ics') => {
 
-    const formatDate = (date: Date) =>
-      `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(
-        date.getUTCHours()
-      )}${pad(date.getUTCMinutes())}00Z`;
+    
+const formatDateForAllday = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+};
 
-    const icsEvents = eventsToExport
-      .map((event) => {
-        const start = formatDate(new Date(event.date));
-        const end = formatDate(new Date(new Date(event.date).getTime() + 60 * 60 * 1000)); // 1h duration
-        return `BEGIN:VEVENT
+// In the event mapping:
+const icsEvents = eventsToExport
+  .map((event) => {
+    const startDate = new Date(event.date);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 1); // All-day events end next day
+
+    return `BEGIN:VEVENT
 SUMMARY:${event.title}
 DESCRIPTION:${event.description || event.rawText || ''}
-DTSTART:${start}
-DTEND:${end}
+DTSTART;VALUE=DATE:${formatDateForAllday(startDate)}
+DTEND;VALUE=DATE:${formatDateForAllday(endDate)}
 END:VEVENT`;
-      })
-      .join('\n');
+  })
+  .join('\n');
 
     const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//YourApp//EN
+PRODID:-//Syll2Cal//EN
+CALSCALE:GREGORIAN
 ${icsEvents}
 END:VCALENDAR`;
 
@@ -153,7 +159,7 @@ END:VCALENDAR`;
                 <div className="text-4xl mb-2"></div>
                 <h3 className="font-semibold mb-1">Apple Calendar</h3>
                 <p className="text-xs text-gray-500 text-center">
-                  Open the downloaded <code>events.ics</code> file on your Mac. It will automatically import into Apple Calendar.
+                  Open the downloaded <code>my-syllabus-calendar.ics</code> file on your Mac. It will automatically import into Apple Calendar.
                 </p>
               </div>
 
@@ -164,7 +170,7 @@ END:VCALENDAR`;
                 <img src="https://www.google.com/favicon.ico" alt="Google" className="w-8 h-8 mb-2" />
                 <h3 className="font-semibold mb-1">Google Calendar</h3>
                 <div className="text-xs text-gray-500 text-left mb-2 space-y-1">
-                  <p>1. Make sure you’ve downloaded <code>events.ics</code>.</p>
+                  <p>1. Make sure you’ve downloaded <code>my-syllabus-calendar.ics</code>.</p>
                   <p>2. Click the button below to open Google Calendar’s Import page.</p>
                   <p>3. On that page, choose your downloaded file and import it safely.</p>
                 </div>
