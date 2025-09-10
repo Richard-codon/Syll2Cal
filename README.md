@@ -64,7 +64,7 @@ Transform your PDF syllabus into an organized, interactive calendar with AI-powe
 1. **Upload**: Drag and drop or select your PDF syllabus
 2. **Process**: Automatically extracts dates and categorizes events
 3. **View**: Browse your calendar in list or grid view
-4. **Export**: Add events to Google Calendar with one click
+4. **Export**: Add events to Google Calendar or your preferred calendar with one click
 
 ## Project Structure
 
